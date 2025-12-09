@@ -16,17 +16,25 @@ import { statisticsAPI } from "../services/api";
 
 const COLORS = ["#FF8042", "#00C49F"];
 
+const PERIODS = [
+  { value: "all", label: "Toutes les données" },
+  { value: "week", label: "7 derniers jours" },
+  { value: "month", label: "30 derniers jours" },
+  { value: "year", label: "12 derniers mois" },
+];
+
 function GlobalStats() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState("all");
 
   useEffect(() => {
     const fetchGlobalStats = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await statisticsAPI.getGlobalStatistics();
+        const data = await statisticsAPI.getGlobalStatistics(selectedPeriod);
         setStats(data);
         console.log(data);
       } catch (err) {
@@ -37,7 +45,7 @@ function GlobalStats() {
     };
 
     fetchGlobalStats();
-  }, []);
+  }, [selectedPeriod]);
 
   if (loading)
     return (
@@ -59,6 +67,7 @@ function GlobalStats() {
     version: grid.gridVersion,
     joueurs: grid.totalPlayers,
     completion: grid.completionRate,
+    completedPlayers: Math.round(grid.totalPlayers * grid.completionRate / 100),
     joker: grid.jokerUsageRate,
     totalWords: grid.totalWords,
     averageWordsFound: grid.averageWordsFound,
@@ -78,7 +87,23 @@ function GlobalStats() {
 
   return (
     <div className="global-stats">
-      <h2>Statistiques Globales de la Plateforme</h2>
+      <div className="header-with-filter">
+        <h2>Statistiques Globales de la Plateforme</h2>
+        <div className="period-selector">
+          <label htmlFor="period-select">Période : </label>
+          <select
+            id="period-select"
+            value={selectedPeriod}
+            onChange={(e) => setSelectedPeriod(e.target.value)}
+          >
+            {PERIODS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <div className="stats-summary">
         <div className="stat-card">
@@ -135,25 +160,24 @@ function GlobalStats() {
             </div>
 
             <div className="chart-container">
-              <h3>Taux de Complétion par Grille (%)</h3>
+              <h3>Joueurs ayant terminé la grille</h3>
+              <p className="chart-subtitle">Nombre de joueurs ayant trouvé tous les mots</p>
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={gridsData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
-                  <YAxis domain={[0, 100]} />
+                  <YAxis />
                   <Tooltip
                     formatter={(value, name, props) => {
-                      if (name === "Complétion %") {
-                        return [
-                          `${value}% (${props.payload.averageWordsFound} / ${props.payload.totalWords} mots en moyenne)`,
-                          name
-                        ];
-                      }
-                      return [value, name];
+                      const { joueurs, completion } = props.payload;
+                      return [
+                        `${value} joueurs (${completion}% des ${joueurs} participants)`,
+                        "Grilles complétées"
+                      ];
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="completion" fill="#00C49F" name="Complétion %" />
+                  <Bar dataKey="completedPlayers" fill="#00C49F" name="Joueurs ayant terminé" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

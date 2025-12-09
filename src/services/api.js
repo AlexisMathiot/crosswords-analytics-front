@@ -42,8 +42,9 @@ export const statisticsAPI = {
     return response.data;
   },
 
-  getGlobalStatistics: async () => {
-    const response = await api.get('/api/v1/statistics/global');
+  getGlobalStatistics: async (period = null) => {
+    const params = period ? { period } : {};
+    const response = await api.get('/api/v1/statistics/global', { params });
     return response.data;
   },
 };
