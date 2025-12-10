@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { statisticsAPI } from '../services/api';
 
-function Leaderboard({ gridId, limit = 50 }) {
+function Leaderboard({ gridId, gridNumber, limit = 50 }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -73,7 +73,7 @@ function Leaderboard({ gridId, limit = 50 }) {
 
   return (
     <div className="leaderboard">
-      <h2>Classement - Grille #{gridId}</h2>
+      <h2>Classement - Grille #{gridNumber ?? gridId}</h2>
       <div className="table-container">
         <table>
           <thead>

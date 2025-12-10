@@ -73,7 +73,7 @@ function TemporalStats({ gridId }) {
 
   return (
     <div className="grid-stats">
-      <h2>Analyse Temporelle - Grille #{gridId}</h2>
+      <h2>Analyse Temporelle - Grille #{stats.gridNumber ?? gridId}</h2>
 
       <div className="stats-summary">
         <div className="stat-card">

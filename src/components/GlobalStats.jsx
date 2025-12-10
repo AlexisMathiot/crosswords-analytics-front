@@ -62,7 +62,7 @@ function GlobalStats() {
 
   // Format grid stats for charts
   const gridsData = stats.gridStats?.map((grid) => ({
-    name: `Grille ${grid.gridId}`,
+    name: `Grille ${grid.gridNumber ?? grid.gridId}`,
     gridId: grid.gridId,
     version: grid.gridVersion,
     joueurs: grid.totalPlayers,

@@ -74,7 +74,7 @@ function App() {
           >
             {availableGrids.map((grid) => (
               <option key={grid.id} value={grid.id}>
-                Grille #{grid.id} - {grid.version}
+                Grille #{grid.gridNumber ?? grid.id} - {grid.version}
               </option>
             ))}
           </select>
@@ -89,7 +89,13 @@ function App() {
             {activeTab === 'global' && <GlobalStats />}
             {activeTab === 'grid' && gridId && <GridStats gridId={gridId} />}
             {activeTab === 'temporal' && gridId && <TemporalStats gridId={gridId} />}
-            {activeTab === 'leaderboard' && gridId && <Leaderboard gridId={gridId} limit={50} />}
+            {activeTab === 'leaderboard' && gridId && (
+              <Leaderboard
+                gridId={gridId}
+                gridNumber={availableGrids.find(g => g.id === gridId)?.gridNumber}
+                limit={50}
+              />
+            )}
           </>
         )}
       </main>

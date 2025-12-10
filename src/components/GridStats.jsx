@@ -102,7 +102,7 @@ function GridStats({ gridId }) {
 
   return (
     <div className="grid-stats">
-      <h2>Statistiques de la Grille #{gridId}</h2>
+      <h2>Statistiques de la Grille #{stats.gridNumber ?? gridId}</h2>
 
       <div className="stats-summary">
         <div className="stat-card">
