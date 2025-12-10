@@ -3,16 +3,27 @@ import GlobalStats from './components/GlobalStats';
 import GridStats from './components/GridStats';
 import Leaderboard from './components/Leaderboard';
 import TemporalStats from './components/TemporalStats';
+import Login from './components/Login';
 import { statisticsAPI } from './services/api';
 import './App.css';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
   const [activeTab, setActiveTab] = useState('global');
   const [gridId, setGridId] = useState(null);
   const [availableGrids, setAvailableGrids] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    setIsAuthenticated(false);
+  };
+
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchGrids = async () => {
       try {
         const grids = await statisticsAPI.getAvailableGrids();
@@ -28,13 +39,25 @@ function App() {
     };
 
     fetchGrids();
-  }, []);
+  }, [isAuthenticated]);
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <Login onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Crosswords Analytics Dashboard</h1>
-        <p>Tableau de bord d'analyse et statistiques</p>
+        <div className="header-content">
+          <div>
+            <h1>Crosswords Analytics Dashboard</h1>
+            <p>Tableau de bord d'analyse et statistiques</p>
+          </div>
+          <button className="logout-btn" onClick={handleLogout}>
+            Déconnexion
+          </button>
+        </div>
       </header>
 
       <nav className="tabs">
