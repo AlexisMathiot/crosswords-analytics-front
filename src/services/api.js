@@ -32,8 +32,9 @@ export const statisticsAPI = {
     return response.data;
   },
 
-  getCompletionTimeDistribution: async (gridId) => {
-    const response = await api.get(`/api/v1/statistics/grid/${gridId}/completion-time-distribution`);
+  getCompletionTimeDistribution: async (gridId, maxMinutes = null) => {
+    const params = maxMinutes != null ? { max_minutes: maxMinutes } : {};
+    const response = await api.get(`/api/v1/statistics/grid/${gridId}/completion-time-distribution`, { params });
     return response.data;
   },
 

@@ -20,22 +20,27 @@ function GridStats({ gridId }) {
   const [stats, setStats] = useState(null);
   const [distribution, setDistribution] = useState(null);
   const [timeDistribution, setTimeDistribution] = useState(null);
+  const [timeDistributionFull, setTimeDistributionFull] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const MAX_MINUTES_FILTER = 240;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [statsData, distData, timeDistData] = await Promise.all([
+        const [statsData, distData, timeDistFiltered, timeDistFull] = await Promise.all([
           statisticsAPI.getGridStatistics(gridId),
           statisticsAPI.getScoreDistribution(gridId),
+          statisticsAPI.getCompletionTimeDistribution(gridId, MAX_MINUTES_FILTER),
           statisticsAPI.getCompletionTimeDistribution(gridId),
         ]);
         setStats(statsData);
         setDistribution(distData);
-        setTimeDistribution(timeDistData);
+        setTimeDistribution(timeDistFiltered);
+        setTimeDistributionFull(timeDistFull);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -52,9 +57,9 @@ function GridStats({ gridId }) {
   if (error) return <div className="error">Erreur: {error}</div>;
   if (!stats) return null;
 
-  // Format time distribution bins for display (convert seconds to minutes)
-  const timeDistributionData =
-    timeDistribution?.bins?.map((bin) => {
+  // Helper to format time distribution bins (seconds to minutes)
+  const formatTimeBins = (dist) =>
+    dist?.bins?.map((bin) => {
       const startMin = Math.floor(bin.start / 60);
       const endMin = Math.floor(bin.end / 60);
       return {
@@ -62,9 +67,14 @@ function GridStats({ gridId }) {
         count: bin.count,
         start: bin.start,
         end: bin.end,
-        minutes: (bin.start + bin.end) / 120, // midpoint in minutes for tooltip
+        minutes: (bin.start + bin.end) / 120,
       };
     }) || [];
+
+  const timeDistributionData = formatTimeBins(timeDistribution);
+  const timeDistributionFullData = formatTimeBins(timeDistributionFull);
+  const excludedCount =
+    (timeDistribution?.totalSubmissions || 0) - (timeDistribution?.filteredSubmissions || 0);
 
   const completionData = [
     { name: "Complété", value: stats.completionRate || 0 },
@@ -171,7 +181,12 @@ function GridStats({ gridId }) {
 
         {timeDistributionData.length > 0 && (
           <div className="chart-container">
-            <h3>Distribution des Temps de Complétion</h3>
+            <h3>Distribution des Temps de Complétion (≤ {MAX_MINUTES_FILTER} min)</h3>
+            {excludedCount > 0 && (
+              <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#888", margin: "0.25rem 0 0.5rem" }}>
+                {excludedCount} soumission{excludedCount > 1 ? "s" : ""} exclue{excludedCount > 1 ? "s" : ""} (temps &gt; {MAX_MINUTES_FILTER / 60}h)
+              </p>
+            )}
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={timeDistributionData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -217,6 +232,63 @@ function GridStats({ gridId }) {
                 </span>
                 <span>
                   <strong>Max:</strong> {Math.floor(timeDistribution.max / 60)}m {timeDistribution.max % 60}s
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {timeDistributionFullData.length > 0 && (
+          <div className="chart-container">
+            <h3>Distribution des Temps — Vue Complète</h3>
+            <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#888", margin: "0.25rem 0 0.5rem" }}>
+              Toutes les {timeDistributionFull?.totalSubmissions || 0} soumissions
+            </p>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={timeDistributionFullData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="range"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis />
+                <Tooltip
+                  formatter={(value, name) => {
+                    if (name === "count") return [value, "Nombre de joueurs"];
+                    return [value, name];
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="count" fill="#82ca9d" name="Nombre de joueurs" />
+              </BarChart>
+            </ResponsiveContainer>
+            {timeDistributionFull && (
+              <div style={{
+                display: "flex",
+                gap: "1rem",
+                justifyContent: "center",
+                marginTop: "1rem",
+                fontSize: "0.85rem",
+                color: "#555",
+                backgroundColor: "#f8f9fa",
+                padding: "0.75rem 1rem",
+                borderRadius: "8px",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                border: "1px solid #e0e0e0"
+              }}>
+                <span>
+                  <strong>Min:</strong> {Math.floor(timeDistributionFull.min / 60)}m {timeDistributionFull.min % 60}s
+                </span>
+                <span>
+                  <strong>Moyenne:</strong> {Math.floor(timeDistributionFull.mean / 60)}m {Math.round(timeDistributionFull.mean % 60)}s
+                </span>
+                <span>
+                  <strong>Médiane:</strong> {Math.floor(timeDistributionFull.median / 60)}m {Math.round(timeDistributionFull.median % 60)}s
+                </span>
+                <span>
+                  <strong>Max:</strong> {Math.floor(timeDistributionFull.max / 60)}m {timeDistributionFull.max % 60}s
                 </span>
               </div>
             )}
