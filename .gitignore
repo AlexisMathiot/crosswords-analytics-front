@@ -24,3 +24,8 @@ dist-ssr
 *.sln
 *.sw?
 node_modules
+
+# Devbox
+devbox.json
+devbox.lock
+devbox.d/
