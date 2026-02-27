@@ -42,6 +42,11 @@ export const statisticsAPI = {
     return response.data;
   },
 
+  getNewUsersPerMonth: async () => {
+    const response = await api.get('/api/v1/statistics/users/monthly');
+    return response.data;
+  },
+
   getGlobalStatistics: async (period = null) => {
     const params = period ? { period } : {};
     const response = await api.get('/api/v1/statistics/global', { params });

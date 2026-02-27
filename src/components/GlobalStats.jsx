@@ -25,6 +25,7 @@ const PERIODS = [
 
 function GlobalStats() {
   const [stats, setStats] = useState(null);
+  const [monthlyUsers, setMonthlyUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState("all");
@@ -34,9 +35,22 @@ function GlobalStats() {
       try {
         setLoading(true);
         setError(null);
-        const data = await statisticsAPI.getGlobalStatistics(selectedPeriod);
+        const [data, monthly] = await Promise.all([
+          statisticsAPI.getGlobalStatistics(selectedPeriod),
+          statisticsAPI.getNewUsersPerMonth(),
+        ]);
         setStats(data);
-        console.log(data);
+        setMonthlyUsers(
+          monthly
+            .slice(1)
+            .map((item) => ({
+              month: new Date(item.month + "-01").toLocaleDateString("fr-FR", {
+                month: "short",
+                year: "numeric",
+              }),
+              count: item.count,
+            })),
+        );
       } catch (err) {
         setError(err.message);
       } finally {
@@ -56,33 +70,39 @@ function GlobalStats() {
 
   const chartData = [
     { name: "Utilisateurs", value: stats.totalUsers || 0 },
-    { name: "Grilles", value: stats.totalGrids || 0 },
     { name: "Soumissions", value: stats.totalSubmissions || 0 },
   ];
 
   // Format grid stats for charts
-  const gridsData = stats.gridStats?.map((grid) => ({
-    name: `Grille ${grid.gridNumber ?? grid.gridId}`,
-    gridId: grid.gridId,
-    version: grid.gridVersion,
-    joueurs: grid.totalPlayers,
-    completion: grid.completionRate,
-    completedPlayers: Math.round(grid.totalPlayers * grid.completionRate / 100),
-    joker: grid.jokerUsageRate,
-    totalWords: grid.totalWords,
-    averageWordsFound: grid.averageWordsFound,
-    medianTime: grid.medianCompletionTime,
-    medianTimeMinutes: Math.floor(grid.medianCompletionTime / 60),
-  })) || [];
+  const gridsData =
+    stats.gridStats?.map((grid) => ({
+      name: `Grille ${grid.gridNumber ?? grid.gridId}`,
+      gridId: grid.gridId,
+      version: grid.gridVersion,
+      joueurs: grid.totalPlayers,
+      completion: grid.completionRate,
+      completedPlayers: Math.round(
+        (grid.totalPlayers * grid.completionRate) / 100,
+      ),
+      joker: grid.jokerUsageRate,
+      totalWords: grid.totalWords,
+      averageWordsFound: grid.averageWordsFound,
+      medianTime: grid.medianCompletionTime,
+      medianTimeMinutes: Math.floor(grid.medianCompletionTime / 60),
+    })) || [];
 
   // Calculate global joker usage average
-  const globalJokerRate = gridsData.length > 0
-    ? gridsData.reduce((sum, grid) => sum + grid.joker, 0) / gridsData.length
-    : 0;
+  const globalJokerRate =
+    gridsData.length > 0
+      ? gridsData.reduce((sum, grid) => sum + grid.joker, 0) / gridsData.length
+      : 0;
 
   const jokerData = [
     { name: "Avec joker", value: Math.round(globalJokerRate * 10) / 10 },
-    { name: "Sans joker", value: Math.round((100 - globalJokerRate) * 10) / 10 },
+    {
+      name: "Sans joker",
+      value: Math.round((100 - globalJokerRate) * 10) / 10,
+    },
   ];
 
   return (
@@ -129,6 +149,26 @@ function GlobalStats() {
       </div>
 
       <div className="charts-grid">
+        {monthlyUsers.length > 0 && (
+          <div className="chart-container full-width">
+            <h3>Nouveaux Utilisateurs par Mois</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyUsers}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip
+                  formatter={(value) => [
+                    value.toLocaleString(),
+                    "Nouveaux utilisateurs",
+                  ]}
+                />
+                <Bar dataKey="count" fill="#667eea" name="Nouveaux utilisateurs" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
         <div className="chart-container">
           <h3>Vue d'ensemble</h3>
           <ResponsiveContainer width="100%" height={400}>
@@ -161,7 +201,9 @@ function GlobalStats() {
 
             <div className="chart-container">
               <h3>Joueurs ayant terminé la grille</h3>
-              <p className="chart-subtitle">Nombre de joueurs ayant trouvé tous les mots</p>
+              <p className="chart-subtitle">
+                Nombre de joueurs ayant trouvé tous les mots
+              </p>
               <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={gridsData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -172,12 +214,16 @@ function GlobalStats() {
                       const { joueurs, completion } = props.payload;
                       return [
                         `${value} joueurs (${completion}% des ${joueurs} participants)`,
-                        "Grilles complétées"
+                        "Grilles complétées",
                       ];
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="completedPlayers" fill="#00C49F" name="Joueurs ayant terminé" />
+                  <Bar
+                    dataKey="completedPlayers"
+                    fill="#00C49F"
+                    name="Joueurs ayant terminé"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -222,14 +268,18 @@ function GlobalStats() {
                         const seconds = props.payload.medianTime % 60;
                         return [
                           `${Math.floor(value)} min ${seconds}s`,
-                          "Temps médian"
+                          "Temps médian",
                         ];
                       }
                       return [value, name];
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="medianTimeMinutes" fill="#8884d8" name="Temps (min)" />
+                  <Bar
+                    dataKey="medianTimeMinutes"
+                    fill="#8884d8"
+                    name="Temps (min)"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
