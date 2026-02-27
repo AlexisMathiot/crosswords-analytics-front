@@ -156,6 +156,49 @@
   margin-bottom: 1rem;
 }
 
+.chart-header-with-toggle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.chart-header-with-toggle h3 {
+  margin-bottom: 0;
+}
+
+.granularity-toggle {
+  display: flex;
+  border: 2px solid #667eea;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.granularity-toggle button {
+  padding: 0.3rem 0.8rem;
+  border: none;
+  background: white;
+  color: #667eea;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.granularity-toggle button:not(:last-child) {
+  border-right: 1px solid #667eea;
+}
+
+.granularity-toggle button.active {
+  background: #667eea;
+  color: white;
+}
+
+.granularity-toggle button:hover:not(.active) {
+  background: #f0f0ff;
+}
+
 .leaderboard {
   background: white;
   padding: 2rem;

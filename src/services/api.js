@@ -43,8 +43,10 @@ export const statisticsAPI = {
     return response.data;
   },
 
-  getNewUsersPerMonth: async () => {
-    const response = await api.get('/api/v1/statistics/users/monthly');
+  getNewUsersRegistrations: async (granularity = 'month') => {
+    const response = await api.get('/api/v1/statistics/users/registrations', {
+      params: { granularity },
+    });
     return response.data;
   },
 

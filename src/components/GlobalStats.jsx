@@ -23,34 +23,26 @@ const PERIODS = [
   { value: "year", label: "12 derniers mois" },
 ];
 
+function formatWeekLabel(startDate) {
+  const date = new Date(startDate + "T00:00:00");
+  return `Sem. du ${date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}`;
+}
+
 function GlobalStats() {
   const [stats, setStats] = useState(null);
-  const [monthlyUsers, setMonthlyUsers] = useState([]);
+  const [usersData, setUsersData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState("all");
+  const [userGranularity, setUserGranularity] = useState("month");
 
   useEffect(() => {
     const fetchGlobalStats = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [data, monthly] = await Promise.all([
-          statisticsAPI.getGlobalStatistics(selectedPeriod),
-          statisticsAPI.getNewUsersPerMonth(),
-        ]);
+        const data = await statisticsAPI.getGlobalStatistics(selectedPeriod);
         setStats(data);
-        setMonthlyUsers(
-          monthly
-            .slice(1)
-            .map((item) => ({
-              month: new Date(item.month + "-01").toLocaleDateString("fr-FR", {
-                month: "short",
-                year: "numeric",
-              }),
-              count: item.count,
-            })),
-        );
       } catch (err) {
         setError(err.message);
       } finally {
@@ -60,6 +52,37 @@ function GlobalStats() {
 
     fetchGlobalStats();
   }, [selectedPeriod]);
+
+  useEffect(() => {
+    const fetchUsersData = async () => {
+      try {
+        const raw = await statisticsAPI.getNewUsersRegistrations(userGranularity);
+        const sliced = raw.slice(1);
+        if (userGranularity === "week") {
+          setUsersData(
+            sliced.map((item) => ({
+              label: formatWeekLabel(item.startDate),
+              count: item.count,
+            })),
+          );
+        } else {
+          setUsersData(
+            sliced.map((item) => ({
+              label: new Date(item.period + "-01").toLocaleDateString("fr-FR", {
+                month: "short",
+                year: "numeric",
+              }),
+              count: item.count,
+            })),
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching user registrations:", err);
+      }
+    };
+
+    fetchUsersData();
+  }, [userGranularity]);
 
   if (loading)
     return (
@@ -149,13 +172,32 @@ function GlobalStats() {
       </div>
 
       <div className="charts-grid">
-        {monthlyUsers.length > 0 && (
+        {usersData.length > 0 && (
           <div className="chart-container full-width">
-            <h3>Nouveaux Utilisateurs par Mois</h3>
+            <div className="chart-header-with-toggle">
+              <h3>
+                Nouveaux Utilisateurs par{" "}
+                {userGranularity === "week" ? "Semaine" : "Mois"}
+              </h3>
+              <div className="granularity-toggle">
+                <button
+                  className={userGranularity === "week" ? "active" : ""}
+                  onClick={() => setUserGranularity("week")}
+                >
+                  Semaine
+                </button>
+                <button
+                  className={userGranularity === "month" ? "active" : ""}
+                  onClick={() => setUserGranularity("month")}
+                >
+                  Mois
+                </button>
+              </div>
+            </div>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyUsers}>
+              <BarChart data={usersData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey="label" />
                 <YAxis />
                 <Tooltip
                   formatter={(value) => [
