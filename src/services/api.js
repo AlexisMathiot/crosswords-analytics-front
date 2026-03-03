@@ -50,6 +50,13 @@ export const statisticsAPI = {
     return response.data;
   },
 
+  getUserActivity: async (monthsLookback = 6, minActiveMonths = 2) => {
+    const response = await api.get('/api/v1/statistics/users/activity', {
+      params: { months_lookback: monthsLookback, min_active_months: minActiveMonths },
+    });
+    return response.data;
+  },
+
   getGlobalStatistics: async (period = null) => {
     const params = period ? { period } : {};
     const response = await api.get('/api/v1/statistics/global', { params });

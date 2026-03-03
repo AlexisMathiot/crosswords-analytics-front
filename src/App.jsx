@@ -3,6 +3,7 @@ import GlobalStats from './components/GlobalStats';
 import GridStats from './components/GridStats';
 import Leaderboard from './components/Leaderboard';
 import TemporalStats from './components/TemporalStats';
+import UserActivity from './components/UserActivity';
 import Login from './components/Login';
 import { statisticsAPI } from './services/api';
 import './App.css';
@@ -80,6 +81,12 @@ function App() {
           Analyse Temporelle
         </button>
         <button
+          className={activeTab === 'activity' ? 'active' : ''}
+          onClick={() => setActiveTab('activity')}
+        >
+          Activite Utilisateurs
+        </button>
+        <button
           className={activeTab === 'leaderboard' ? 'active' : ''}
           onClick={() => setActiveTab('leaderboard')}
         >
@@ -110,6 +117,7 @@ function App() {
         ) : (
           <>
             {activeTab === 'global' && <GlobalStats />}
+            {activeTab === 'activity' && <UserActivity />}
             {activeTab === 'grid' && gridId && <GridStats gridId={gridId} />}
             {activeTab === 'temporal' && gridId && <TemporalStats gridId={gridId} />}
             {activeTab === 'leaderboard' && gridId && (
