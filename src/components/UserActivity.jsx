@@ -97,7 +97,7 @@ function UserActivity() {
   if (error) return <div className="error">Erreur: {error}</div>;
   if (!data) return null;
 
-  const { activeUsersTimeline, regularUsers, retention, activityDistribution } =
+  const { activeUsersTimeline, regularUsers, totalPlayedUsers, retention, activityDistribution } =
     data;
 
   // Format timeline data for charts
@@ -138,41 +138,60 @@ function UserActivity() {
     <div className="global-stats">
       <div className="header-with-filter">
         <h2>Activite des Utilisateurs</h2>
-        <div className="period-selector">
-          <label htmlFor="lookback-select">Periode : </label>
-          <select
-            id="lookback-select"
-            value={monthsLookback}
-            onChange={(e) => {
-              const newLookback = parseInt(e.target.value);
-              setMonthsLookback(newLookback);
-              if (minActiveMonths > newLookback) {
-                setMinActiveMonths(Math.min(2, newLookback));
-              }
-            }}
-          >
-            {LOOKBACK_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+        <div className="header-filters">
+          <div className="period-selector">
+            <label htmlFor="threshold-select">Seuil regulier : </label>
+            <select
+              id="threshold-select"
+              value={minActiveMonths}
+              onChange={(e) => setMinActiveMonths(parseInt(e.target.value))}
+            >
+              {minMonthsOptions.map((n) => (
+                <option key={n} value={n}>
+                  {n}+ mois actifs
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="period-selector">
+            <label htmlFor="lookback-select">Periode : </label>
+            <select
+              id="lookback-select"
+              value={monthsLookback}
+              onChange={(e) => {
+                const newLookback = parseInt(e.target.value);
+                setMonthsLookback(newLookback);
+                if (minActiveMonths > newLookback) {
+                  setMinActiveMonths(Math.min(2, newLookback));
+                }
+              }}
+            >
+              {LOOKBACK_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
       <div className="stats-summary">
         <div className="stat-card">
-          <h3>Utilisateurs Reguliers</h3>
+          <h3>Joueurs Reguliers</h3>
           <p className="stat-value">{regularUsers.count}</p>
           <p className="stat-detail">
-            {regularUsers.percentage}% des utilisateurs actifs
+            {regularUsers.percentage}% des joueurs actifs
+          </p>
+          <p className="stat-legend">
+            Joueur ayant joue au moins {minActiveMonths} mois distincts sur la periode.
           </p>
         </div>
         <div className="stat-card">
-          <h3>Total Utilisateurs Actifs</h3>
-          <p className="stat-value">{regularUsers.totalUsers}</p>
-          <p className="stat-detail">
-            sur les {regularUsers.monthsAnalyzed} derniers mois
+          <h3>Total Joueurs</h3>
+          <p className="stat-value">{totalPlayedUsers}</p>
+          <p className="stat-legend">
+            Utilisateur ayant joue au moins une grille.
           </p>
         </div>
         <div className="stat-card">
@@ -187,29 +206,8 @@ function UserActivity() {
             %
           </p>
           <p className="stat-detail">mois par mois</p>
-        </div>
-        <div className="stat-card">
-          <h3>Seuil Regulier</h3>
-          <p className="stat-value">
-            <select
-              value={minActiveMonths}
-              onChange={(e) => setMinActiveMonths(parseInt(e.target.value))}
-              style={{
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                border: "2px solid #667eea",
-                borderRadius: "6px",
-                padding: "4px 8px",
-                color: "#667eea",
-                background: "white",
-              }}
-            >
-              {minMonthsOptions.map((n) => (
-                <option key={n} value={n}>
-                  {n}+ mois actifs
-                </option>
-              ))}
-            </select>
+          <p className="stat-legend">
+            Pourcentage de joueurs actifs un mois donne qui reviennent jouer le mois suivant.
           </p>
         </div>
       </div>
