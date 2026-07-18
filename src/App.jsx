@@ -4,9 +4,24 @@ import GridStats from './components/GridStats';
 import Leaderboard from './components/Leaderboard';
 import TemporalStats from './components/TemporalStats';
 import UserActivity from './components/UserActivity';
+import DuelStats from './components/DuelStats';
+import PremiumStats from './components/PremiumStats';
 import Login from './components/Login';
 import { statisticsAPI } from './services/api';
 import './App.css';
+
+const GRID_TYPES = [
+  { value: 'all', label: 'Toutes' },
+  { value: 'weekly', label: 'Semaine' },
+  { value: 'izipizi', label: 'Izipizi' },
+  { value: 'duel', label: 'Duel' },
+];
+
+const TYPE_LABELS = {
+  weekly: 'Grilles de la semaine',
+  izipizi: 'Izipizi',
+  duel: 'Duels',
+};
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -14,8 +29,14 @@ function App() {
   });
   const [activeTab, setActiveTab] = useState('global');
   const [gridId, setGridId] = useState(null);
+  const [gridType, setGridType] = useState('all');
   const [availableGrids, setAvailableGrids] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const recency = (grid) => grid.activatedAt ?? grid.publishedAt ?? '';
+  const filteredGrids = availableGrids
+    .filter((grid) => gridType === 'all' || grid.type === gridType)
+    .sort((a, b) => recency(b).localeCompare(recency(a)) || b.id - a.id);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
@@ -29,9 +50,6 @@ function App() {
       try {
         const grids = await statisticsAPI.getAvailableGrids();
         setAvailableGrids(grids);
-        if (grids.length > 0) {
-          setGridId(grids[0].id);
-        }
       } catch (error) {
         console.error('Error fetching grids:', error);
       } finally {
@@ -41,6 +59,16 @@ function App() {
 
     fetchGrids();
   }, [isAuthenticated]);
+
+  // Keep a valid grid selected when the type filter or the grid list changes
+  useEffect(() => {
+    if (filteredGrids.length === 0) {
+      setGridId(null);
+    } else if (!filteredGrids.some((grid) => grid.id === gridId)) {
+      setGridId(filteredGrids[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gridType, availableGrids]);
 
   // Show login screen if not authenticated
   if (!isAuthenticated) {
@@ -92,21 +120,59 @@ function App() {
         >
           Classement
         </button>
+        <button
+          className={activeTab === 'duels' ? 'active' : ''}
+          onClick={() => setActiveTab('duels')}
+        >
+          Duels
+        </button>
+        <button
+          className={activeTab === 'premium' ? 'active' : ''}
+          onClick={() => setActiveTab('premium')}
+        >
+          Abonnements
+        </button>
       </nav>
 
       {(activeTab === 'grid' || activeTab === 'temporal' || activeTab === 'leaderboard') && !loading && (
         <div className="grid-selector">
+          <label htmlFor="gridType">Type:</label>
+          <select
+            id="gridType"
+            value={gridType}
+            onChange={(e) => setGridType(e.target.value)}
+          >
+            {GRID_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
           <label htmlFor="gridId">Grille:</label>
           <select
             id="gridId"
             value={gridId || ''}
             onChange={(e) => setGridId(parseInt(e.target.value))}
           >
-            {availableGrids.map((grid) => (
-              <option key={grid.id} value={grid.id}>
-                Grille #{grid.gridNumber ?? grid.id} - {grid.version}
-              </option>
-            ))}
+            {gridType === 'all'
+              ? Object.keys(TYPE_LABELS)
+                  .filter((type) => filteredGrids.some((grid) => grid.type === type))
+                  .map((type) => (
+                    <optgroup key={type} label={TYPE_LABELS[type]}>
+                      {filteredGrids
+                        .filter((grid) => grid.type === type)
+                        .map((grid) => (
+                          <option key={grid.id} value={grid.id}>
+                            Grille #{grid.gridNumber ?? grid.id} - {grid.version}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))
+              : filteredGrids.map((grid) => (
+                  <option key={grid.id} value={grid.id}>
+                    Grille #{grid.gridNumber ?? grid.id} - {grid.version}
+                  </option>
+                ))}
           </select>
         </div>
       )}
@@ -118,6 +184,8 @@ function App() {
           <>
             {activeTab === 'global' && <GlobalStats />}
             {activeTab === 'activity' && <UserActivity />}
+            {activeTab === 'duels' && <DuelStats />}
+            {activeTab === 'premium' && <PremiumStats />}
             {activeTab === 'grid' && gridId && <GridStats gridId={gridId} />}
             {activeTab === 'temporal' && gridId && <TemporalStats gridId={gridId} />}
             {activeTab === 'leaderboard' && gridId && (

@@ -63,13 +63,21 @@
 .grid-selector {
   background: rgba(255, 255, 255, 0.9);
   padding: 1rem;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
   border-bottom: 1px solid #e0e0e0;
 }
 
 .grid-selector label {
   margin-right: 0.5rem;
   font-weight: 500;
+}
+
+.grid-selector select#gridType {
+  min-width: 140px;
 }
 
 .grid-selector input,

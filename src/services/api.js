@@ -62,6 +62,28 @@ export const statisticsAPI = {
     const response = await api.get('/api/v1/statistics/global', { params });
     return response.data;
   },
+
+  getTypeStatistics: async () => {
+    const response = await api.get('/api/v1/statistics/types');
+    return response.data;
+  },
+
+  getDuelOverview: async () => {
+    const response = await api.get('/api/v1/statistics/duels/overview');
+    return response.data;
+  },
+
+  getDuelLeaderboard: async (limit = 50) => {
+    const response = await api.get('/api/v1/statistics/duels/leaderboard', {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  getPremiumStatistics: async () => {
+    const response = await api.get('/api/v1/statistics/premium');
+    return response.data;
+  },
 };
 
 export default api;
