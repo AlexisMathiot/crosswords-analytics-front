@@ -77,8 +77,8 @@ function DuelStats() {
   }
 
   const outcomeData = [
-    { name: 'Victoires Joueur 1', value: overview.outcomes.player1Wins },
-    { name: 'Victoires Joueur 2', value: overview.outcomes.player2Wins },
+    { name: 'Victoires du premier soumissionnaire', value: overview.outcomes.player1Wins },
+    { name: 'Victoires du second soumissionnaire', value: overview.outcomes.player2Wins },
     { name: 'Matchs nuls', value: overview.outcomes.draws },
   ].filter((entry) => entry.value > 0);
 
