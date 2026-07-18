@@ -222,6 +222,10 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.section-spaced {
+  margin-top: 2.5rem;
+}
+
 .leaderboard h2,
 .grid-stats h2,
 .global-stats h2 {

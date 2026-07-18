@@ -161,7 +161,7 @@ function DuelStats() {
       </div>
 
       {overview.perGrid.length > 0 && (
-        <div className="leaderboard">
+        <div className="leaderboard section-spaced">
           <h2>Détail par grille</h2>
           <div className="table-container">
             <table>
@@ -196,7 +196,7 @@ function DuelStats() {
         </div>
       )}
 
-      <div className="leaderboard">
+      <div className="leaderboard section-spaced">
         <h2>Classement Elo</h2>
         <p className="chart-subtitle">
           Classement limité aux joueurs ayant disputé au moins 5 duels (
