@@ -160,6 +160,42 @@ function DuelStats() {
         )}
       </div>
 
+      {overview.perGrid.length > 0 && (
+        <div className="leaderboard">
+          <h2>Détail par grille</h2>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Grille</th>
+                  <th>Duels joués</th>
+                  <th>Matchs</th>
+                  <th>Joueurs</th>
+                  <th>Expirés</th>
+                  <th>Temps médian</th>
+                  <th>% Complétion</th>
+                </tr>
+              </thead>
+              <tbody>
+                {overview.perGrid.map((grid) => (
+                  <tr key={grid.gridId}>
+                    <td className="pseudo">
+                      Grille #{grid.gridNumber ?? grid.gridId} - {grid.version}
+                    </td>
+                    <td>{grid.submissions}</td>
+                    <td>{grid.matches}</td>
+                    <td>{grid.uniquePlayers}</td>
+                    <td>{grid.expiredCount}</td>
+                    <td>{formatTime(grid.medianCompletionTime)}</td>
+                    <td>{grid.completionRate != null ? `${grid.completionRate}%` : 'N/A'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="leaderboard">
         <h2>Classement Elo</h2>
         <p className="chart-subtitle">

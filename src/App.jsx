@@ -10,17 +10,17 @@ import Login from './components/Login';
 import { statisticsAPI } from './services/api';
 import './App.css';
 
+// Duel grids are excluded from the per-grid views: their gameplay lives in
+// the duel tables and is covered by the dedicated "Duels" tab
 const GRID_TYPES = [
   { value: 'all', label: 'Toutes' },
   { value: 'weekly', label: 'Semaine' },
   { value: 'izipizi', label: 'Izipizi' },
-  { value: 'duel', label: 'Duel' },
 ];
 
 const TYPE_LABELS = {
   weekly: 'Grilles de la semaine',
   izipizi: 'Izipizi',
-  duel: 'Duels',
 };
 
 function App() {
@@ -35,6 +35,7 @@ function App() {
 
   const recency = (grid) => grid.activatedAt ?? grid.publishedAt ?? '';
   const filteredGrids = availableGrids
+    .filter((grid) => grid.type !== 'duel')
     .filter((grid) => gridType === 'all' || grid.type === gridType)
     .sort((a, b) => recency(b).localeCompare(recency(a)) || b.id - a.id);
 
