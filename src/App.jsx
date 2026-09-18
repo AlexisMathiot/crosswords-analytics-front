@@ -6,12 +6,14 @@ import TemporalStats from './components/TemporalStats';
 import UserActivity from './components/UserActivity';
 import DuelStats from './components/DuelStats';
 import PremiumStats from './components/PremiumStats';
+import TournamentStats from './components/TournamentStats';
 import Login from './components/Login';
 import { statisticsAPI } from './services/api';
 import './App.css';
 
-// Duel grids are excluded from the per-grid views: their gameplay lives in
-// the duel tables and is covered by the dedicated "Duels" tab
+// Duel and tournament grids are excluded from the per-grid views: their
+// gameplay lives in dedicated tables and is covered by the "Duels" and
+// "Tournoi" tabs
 const GRID_TYPES = [
   { value: 'all', label: 'Toutes' },
   { value: 'weekly', label: 'Semaine' },
@@ -35,7 +37,7 @@ function App() {
 
   const recency = (grid) => grid.activatedAt ?? grid.publishedAt ?? '';
   const filteredGrids = availableGrids
-    .filter((grid) => grid.type !== 'duel')
+    .filter((grid) => grid.type !== 'duel' && grid.type !== 'tournament')
     .filter((grid) => gridType === 'all' || grid.type === gridType)
     .sort((a, b) => recency(b).localeCompare(recency(a)) || b.id - a.id);
 
@@ -133,6 +135,12 @@ function App() {
         >
           Abonnements
         </button>
+        <button
+          className={activeTab === 'tournament' ? 'active' : ''}
+          onClick={() => setActiveTab('tournament')}
+        >
+          Tournoi
+        </button>
       </nav>
 
       {(activeTab === 'grid' || activeTab === 'temporal' || activeTab === 'leaderboard') && !loading && (
@@ -187,6 +195,7 @@ function App() {
             {activeTab === 'activity' && <UserActivity />}
             {activeTab === 'duels' && <DuelStats />}
             {activeTab === 'premium' && <PremiumStats />}
+            {activeTab === 'tournament' && <TournamentStats />}
             {activeTab === 'grid' && gridId && <GridStats gridId={gridId} />}
             {activeTab === 'temporal' && gridId && <TemporalStats gridId={gridId} />}
             {activeTab === 'leaderboard' && gridId && (

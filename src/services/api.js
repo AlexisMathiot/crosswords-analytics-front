@@ -84,6 +84,16 @@ export const statisticsAPI = {
     const response = await api.get('/api/v1/statistics/premium');
     return response.data;
   },
+
+  getTournamentOverview: async () => {
+    const response = await api.get('/api/v1/statistics/tournaments/overview');
+    return response.data;
+  },
+
+  getTournamentDetail: async (tournamentId) => {
+    const response = await api.get(`/api/v1/statistics/tournaments/${tournamentId}`);
+    return response.data;
+  },
 };
 
 export default api;
